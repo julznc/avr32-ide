@@ -26,13 +26,13 @@
 '''
 
 import os
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from cppeditor import CppEditor, PROJECT_ALIAS, PROJECT_NONAME
 from outline import OutLineView
 from finddialog import FindDialog
 from firmware import USER_CODE_EXT, getLibraryKeywords, scanFirmwareLibs, getExampleProjects
 
-class MultipleCppEditor(QtGui.QTabWidget):
+class MultipleCppEditor(QtWidgets.QTabWidget):
     '''
     classdocs
     '''
@@ -64,8 +64,8 @@ class MultipleCppEditor(QtGui.QTabWidget):
 
         self.Outline = OutLineView(self)
 
-        self.connect(self, QtCore.SIGNAL('tabCloseRequested(int)'), self.closeFile)
-        self.connect(self, QtCore.SIGNAL('currentChanged(int)'), self.Outline.update)
+        self.tabCloseRequested.connect(self.closeFile)
+        self.currentChanged.connect(self.Outline.update)
 
         if self.count()==0:
             self.newFile()
@@ -79,7 +79,7 @@ class MultipleCppEditor(QtGui.QTabWidget):
 
     def openFile(self, fileName=None):
         if fileName == None: # prompt open dialog if filename is not specified
-            fileName = QtGui.QFileDialog.getOpenFileName(
+            fileName, _ = QtWidgets.QFileDialog.getOpenFileName(
                                 self, self.tr("Open Source File"),
                                 "", PROJECT_ALIAS + " (*" + USER_CODE_EXT + ");;"
                                 "C Source File (*.c);;C++ Source File (*.cpp);;Text File (*.txt);;All files (*.*)" )
@@ -137,12 +137,12 @@ class MultipleCppEditor(QtGui.QTabWidget):
         # check if the file has changed before closing
         child = self.widget(idx)
         if child.isModified:
-            result = QtGui.QMessageBox.question(self, "Modified",
+            result = QtWidgets.QMessageBox.question(self, "Modified",
                          'Save changes on "' + child.currentFile() + '" ?',
-                         QtGui.QMessageBox.Yes, QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
-            if result == QtGui.QMessageBox.Cancel:
+                         QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Cancel)
+            if result == QtWidgets.QMessageBox.Cancel:
                 return False
-            elif result == QtGui.QMessageBox.Yes:
+            elif result == QtWidgets.QMessageBox.Yes:
                 if child.save() == None: # file was not save after
                     return False
         self.removeTab(idx)
@@ -242,7 +242,7 @@ class MultipleCppEditor(QtGui.QTabWidget):
                             wholeWord=False, regExp=False):
         if oldText:
             if (not caseSensitive) and (oldText.lower() == newText.lower()):
-                print "nothing to replace"
+                print ("nothing to replace")
                 return False
             child = self.currentWidget()
             if child:
@@ -265,7 +265,7 @@ class MultipleCppEditor(QtGui.QTabWidget):
         child = self.currentWidget()
         if child:
             title = self.tabText(self.currentIndex())
-            if not title.contains('*', QtCore.Qt.CaseInsensitive):
+            if title.find('*') < 0:
                 self.setTabText(self.currentIndex(), title + " * ")
 
             self.Outline.update(child.text())
@@ -293,7 +293,7 @@ class MultipleCppEditor(QtGui.QTabWidget):
             fname = str(e.mimeData().urls()[0].toLocalFile() )
             self.openFile(fname)
         except:
-            print "drop error"
+            print ("drop error")
 
     def closeAllTabs(self):
         for index in range(self.count()):

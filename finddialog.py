@@ -25,9 +25,9 @@
 
 '''
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
-class FindDialog(QtGui.QDialog):
+class FindDialog(QtWidgets.QDialog):
     '''
     classdocs
     '''
@@ -39,27 +39,27 @@ class FindDialog(QtGui.QDialog):
         self.parent = parent
 
         # string inputs
-        self.findInput = QtGui.QLineEdit()
-        self.replaceInput = QtGui.QLineEdit()
+        self.findInput = QtWidgets.QLineEdit()
+        self.replaceInput = QtWidgets.QLineEdit()
         # push buttons
-        self.findButton = QtGui.QPushButton("Find")
-        self.replaceButton = QtGui.QPushButton("Replace")
-        self.replaceFindButton = QtGui.QPushButton("Replace/Find")
-        self.replaceAllButton = QtGui.QPushButton("Replace All")
+        self.findButton = QtWidgets.QPushButton("Find")
+        self.replaceButton = QtWidgets.QPushButton("Replace")
+        self.replaceFindButton = QtWidgets.QPushButton("Replace/Find")
+        self.replaceAllButton = QtWidgets.QPushButton("Replace All")
         # checkbox options
-        self.reverseFindCheckbox = QtGui.QCheckBox("Backward search")
-        self.caseSensitiveCheckbox = QtGui.QCheckBox("Case sensitive")
-        self.wrapAroundCheckbox = QtGui.QCheckBox("Wrap search")
+        self.reverseFindCheckbox = QtWidgets.QCheckBox("Backward search")
+        self.caseSensitiveCheckbox = QtWidgets.QCheckBox("Case sensitive")
+        self.wrapAroundCheckbox = QtWidgets.QCheckBox("Wrap search")
         self.wrapAroundCheckbox.setCheckState(QtCore.Qt.Checked)
-        self.wholeWordCheckbox = QtGui.QCheckBox("Whole Word")
-        self.regExpCheckbox = QtGui.QCheckBox("Regular expressions")
+        self.wholeWordCheckbox = QtWidgets.QCheckBox("Whole Word")
+        self.regExpCheckbox = QtWidgets.QCheckBox("Regular expressions")
 
         # grid layout (7 x 12 grid)
-        layout = QtGui.QGridLayout()
+        layout = QtWidgets.QGridLayout()
         # string inputs layout position
-        layout.addWidget(QtGui.QLabel('Find:'),0, 0, 1, 2)
+        layout.addWidget(QtWidgets.QLabel('Find:'),0, 0, 1, 2)
         layout.addWidget(self.findInput, 0, 2, 1, 10)
-        layout.addWidget(QtGui.QLabel('Replace with:'),1, 0, 1, 2)
+        layout.addWidget(QtWidgets.QLabel('Replace with:'),1, 0, 1, 2)
         layout.addWidget(self.replaceInput, 1, 2, 1, 10)
         # checkboxes layout position
         layout.addWidget(self.reverseFindCheckbox, 3, 2, 1, 3)

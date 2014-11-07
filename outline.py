@@ -27,7 +27,7 @@
 
 import clang.cindex as clang
 from firmware import getCompilerDefines
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 
 class CLangParserThread(QtCore.QThread):
     def __init__(self, parent=None):
@@ -79,7 +79,7 @@ class CLangParserThread(QtCore.QThread):
         return self.nodes
 
 
-class OutLineView(QtGui.QDockWidget):
+class OutLineView(QtWidgets.QDockWidget):
 
     def __init__(self, parent=None):
         super(OutLineView, self).__init__("Outline Pending...", parent)
@@ -88,7 +88,7 @@ class OutLineView(QtGui.QDockWidget):
         self.itemStack = []
         self.updated = True
 
-        self.treeWidget = QtGui.QTreeWidget(self)
+        self.treeWidget = QtWidgets.QTreeWidget(self)
         self.treeWidget.setHeaderHidden(True)
         self.treeWidget.itemClicked.connect(self.onItemDoubleClicked)
         self.setWidget(self.treeWidget)
@@ -124,7 +124,7 @@ class OutLineView(QtGui.QDockWidget):
                         col += len('#include <')
                     child.setSelection( line, col, line, col+len(item.text(0)) )
             except:
-                print "error: editor setSelection() failed!"
+                print("error: editor setSelection() failed!")
 
     def timerEvent(self, *args, **kwargs):
         if not self.updated:
@@ -143,27 +143,28 @@ class OutLineView(QtGui.QDockWidget):
 
                     try:
                         tip = "%s : %s [%d, %d]"%(label, node.kind.name, node.location.line, node.location.column)
+                        #print("tip = %s"%tip)
                         if node.kind.name=='VAR_DECL' and level>3:
                             level = level - 2
                         if level==1:
                             del self.itemStack[:]
-                            item = QtGui.QTreeWidgetItem(self.treeWidget, [label])
+                            item = QtWidgets.QTreeWidgetItem(self.treeWidget, [label])
                             item.setToolTip(0, tip)
-                            #print 'add top...', label
+                            #print('add top...', label)
                             self.treeWidget.addTopLevelItem(item)
                             self.itemStack.append(item)
                         elif level>previous_level:
                             while len(self.itemStack)<level-1:
                                 self.itemStack.append(self.itemStack[len(self.itemStack)-1])
-                            item = QtGui.QTreeWidgetItem([label])
+                            item = QtWidgets.QTreeWidgetItem([label])
                             item.setToolTip(0, tip)
-                            #print 'add child...', self.itemStack[level-2].text(0)
+                            #print('add child...', self.itemStack[level-2].text(0))
                             self.itemStack[level-2].addChild( item )
                             self.itemStack.append( item )
                         elif level==previous_level:
-                            item = QtGui.QTreeWidgetItem([label])
+                            item = QtWidgets.QTreeWidgetItem([label])
                             item.setToolTip(0, tip)
-                            #print 'add sibling...', self.itemStack[level-2].text(0)
+                            #print('add sibling...', self.itemStack[level-2].text(0))
                             self.itemStack[level-2].addChild( item )
                             old_item = self.itemStack.pop()
                             del old_item
@@ -173,14 +174,14 @@ class OutLineView(QtGui.QDockWidget):
                                 old_item = self.itemStack.pop()
                                 del old_item
                                 if len(self.itemStack)<level:
-                                    item = QtGui.QTreeWidgetItem([label])
+                                    item = QtWidgets.QTreeWidgetItem([label])
                                     item.setToolTip(0, tip)
-                                    #print 'add to previous parent...', self.itemStack[level-2].text(0)
+                                    #print('add to previous parent...', self.itemStack[level-2].text(0))
                                     self.itemStack[level-2].addChild( item )
                                     break;
-                        # print level, label, node.kind, node.location.line
+                        #print(level, label, node.kind, node.location.line)
                     except:
-                        print 'error adding %s, level(%d->%d), stack(%d)' %(label, previous_level, level, len(self.itemStack))
+                        print('error adding %s, level(%d->%d), stack(%d)' %(label, previous_level, level, len(self.itemStack)))
                     previous_level = level
 
                 self.setWindowTitle("Outline")
@@ -190,6 +191,3 @@ class OutLineView(QtGui.QDockWidget):
                 self.treeWidget.clear()
                 self.setWindowTitle("Outline")
                 self.updated = True
-
-        #return QtGui.QDockWidget.timerEvent(self, *args, **kwargs)
-

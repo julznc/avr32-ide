@@ -26,7 +26,7 @@
 '''
 
 import os, functools
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from editor import MultipleCppEditor
 from firmware import scanFirmwareLibs, getExampleProjects
 from compiler import GccCompilerThread
@@ -35,7 +35,7 @@ from serialport import scan_serialports, SerialPortMonitor
 from about import AboutDialog, SPLASH_NOTICE
 
 
-class AppMainWindow(QtGui.QMainWindow):
+class AppMainWindow(QtWidgets.QMainWindow):
     '''
     classdocs
     '''
@@ -45,8 +45,8 @@ class AppMainWindow(QtGui.QMainWindow):
         Constructor
         '''
         super(AppMainWindow, self).__init__()
-        print "AVR32 GCC IDE started..."
-        print SPLASH_NOTICE
+        print ("AVR32 GCC IDE started...")
+        print (SPLASH_NOTICE)
 
         if False: # todo: set to True if building stand-alone package (cx_Freeze)
             setpath = os.path.dirname( os.path.realpath( __file__ ) )
@@ -74,7 +74,7 @@ class AppMainWindow(QtGui.QMainWindow):
         self.pollCompilerTimerID = None
 
         self.serialPortName = None
-        self.serialPortLabel = QtGui.QLabel('<font color=red><i>(select port)</i></font>')
+        self.serialPortLabel = QtWidgets.QLabel('<font color=red><i>(select port)</i></font>')
         self.SerialPortMonitorDialog = SerialPortMonitor(self)
 
         self.Configs = IdeConfig(self)
@@ -88,12 +88,12 @@ class AppMainWindow(QtGui.QMainWindow):
         self.createMenus()
 
         self.aboutDlg.finish(self)
-        print "IDE ready."
+        print ("IDE ready.")
 
 
     def about(self):
         self.aboutDlg.show()
-        kdbMod = QtGui.QApplication.keyboardModifiers()
+        kdbMod = QtWidgets.QApplication.keyboardModifiers()
         if kdbMod == QtCore.Qt.ShiftModifier:
             self.aboutDlg.showMessage('[developer mode] update firmware library...', QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom, QtGui.QColor("#eecc77"))
             self.aboutDlg.showUpdateDialog()
@@ -112,9 +112,9 @@ class AppMainWindow(QtGui.QMainWindow):
         info = self.Compiler.getCompilerInfo()
         #self.log.append(info)
         if info:
-            QtGui.QMessageBox.about( self, "Compiler Information", info )
+            QtWidgets.QMessageBox.about( self, "Compiler Information", info )
         else:
-            QtGui.QMessageBox.about( self, "Compiler Information", "no compiler found!" )
+            QtWidgets.QMessageBox.about( self, "Compiler Information", "no compiler found!" )
 
     def startBuild(self):
         if self.Compiler.isRunning():
@@ -123,7 +123,7 @@ class AppMainWindow(QtGui.QMainWindow):
         if not self.McuPartName or not self.boardGroup.checkedAction():
             self.insertLog('<font color=orange>Please select first a Target Board.</font>')
             return
-        kdbMod = QtGui.QApplication.keyboardModifiers()
+        kdbMod = QtWidgets.QApplication.keyboardModifiers()
         if not os.path.isfile(self.Editor.getCurrentFile()) or self.Editor.isCurrentFileModified():
             ret = self.Editor.saveFile() # save the file first before starting the build.
             if ret == False:
@@ -142,12 +142,12 @@ class AppMainWindow(QtGui.QMainWindow):
         if not ret:
             self.insertLog( "<font color=red>%s</font>"%msg )
             if msg == "file not found":
-                QtGui.QMessageBox.warning( self, "Build Error", "File not found (may be unsaved yet). " + \
+                QtWidgets.QMessageBox.warning( self, "Build Error", "File not found (may be unsaved yet). " + \
                                              "Create or save first the file." )
             elif msg == "busy":
-                QtGui.QMessageBox.warning( self, "Busy", "Previous build process still running!" )
+                QtWidgets.QMessageBox.warning( self, "Busy", "Previous build process still running!" )
             elif msg == "abort":
-                QtGui.QMessageBox.warning( self, "Error", "Unable to start build process!" )
+                QtWidgets.QMessageBox.warning( self, "Error", "Unable to start build process!" )
         else:
             self.insertLog( "<font color=lightblue><i>   %s   </i></font>"%msg )
             self.pollCompilerTimerID = self.startTimer(50)
@@ -226,7 +226,7 @@ class AppMainWindow(QtGui.QMainWindow):
         # create new actions & update serial port menu
         if len(portList):
             for i in range(len(portList)):
-                act = QtGui.QAction(portList[i],  self, checkable=True,
+                act = QtWidgets.QAction(portList[i],  self, checkable=True,
                             statusTip="select " + portList[i] + " serial port",
                             triggered=self.selectSerialPort)
                 self.serialPortGroup.addAction( act )
@@ -255,52 +255,52 @@ class AppMainWindow(QtGui.QMainWindow):
 
     def createActions(self):
         # file menu
-        self.newAct = QtGui.QAction( QtGui.QIcon("./images/new.png"), "&New",
+        self.newAct = QtWidgets.QAction( QtGui.QIcon("./images/new.png"), "&New",
                 self, shortcut=QtGui.QKeySequence("Ctrl+N"),
                 statusTip="Create a new file", triggered=self.Editor.newFile)
-        self.openAct = QtGui.QAction(QtGui.QIcon("./images/open.png"), "&Open...",
+        self.openAct = QtWidgets.QAction(QtGui.QIcon("./images/open.png"), "&Open...",
                 self, shortcut=QtGui.QKeySequence("Ctrl+O"),
                 statusTip="Open an existing file")
         self.openAct.triggered.connect( functools.partial(self.Editor.openFile, None) )
-        self.closeAct = QtGui.QAction("&Close",
+        self.closeAct = QtWidgets.QAction("&Close",
                 self, shortcut=QtGui.QKeySequence("Ctrl+W"),
                 statusTip="Close the current window", triggered=self.Editor.closeCurrentFile)
-        self.saveAct = QtGui.QAction(QtGui.QIcon("./images/save.png"), "&Save",
+        self.saveAct = QtWidgets.QAction(QtGui.QIcon("./images/save.png"), "&Save",
                 self, shortcut=QtGui.QKeySequence("Ctrl+S"),
                 statusTip="Save the current file", triggered=self.Editor.saveFile)
-        self.saveAsAct = QtGui.QAction("Save &As...", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
+        self.saveAsAct = QtWidgets.QAction("Save &As...", self, shortcut=QtGui.QKeySequence("Ctrl+Shift+S"),
                 statusTip="Save to another file", triggered=self.Editor.saveFileAs)
 
-        self.exitAct = QtGui.QAction("E&xit", self,
+        self.exitAct = QtWidgets.QAction("E&xit", self,
                 shortcut=QtGui.QKeySequence("Alt+F4"),
-                statusTip="Exit the application", triggered=QtGui.qApp.closeAllWindows)
+                statusTip="Exit the application", triggered=QtWidgets.qApp.closeAllWindows)
 
         # edit menu
-        self.editUndoAct = QtGui.QAction("&Undo", self, shortcut=QtGui.QKeySequence("Ctrl+Z"),
+        self.editUndoAct = QtWidgets.QAction("&Undo", self, shortcut=QtGui.QKeySequence("Ctrl+Z"),
                                          triggered=self.Editor.editUndo)
-        self.editRedoAct = QtGui.QAction("&Redo", self, shortcut=QtGui.QKeySequence("Ctrl+Y"),
+        self.editRedoAct = QtWidgets.QAction("&Redo", self, shortcut=QtGui.QKeySequence("Ctrl+Y"),
                                          triggered=self.Editor.editRedo)
-        self.editCutAct = QtGui.QAction("Cu&t", self, shortcut=QtGui.QKeySequence("Ctrl+X"),
+        self.editCutAct = QtWidgets.QAction("Cu&t", self, shortcut=QtGui.QKeySequence("Ctrl+X"),
                                          triggered=self.Editor.editCut)
-        self.editCopyAct = QtGui.QAction("&Copy", self, shortcut=QtGui.QKeySequence("Ctrl+C"),
+        self.editCopyAct = QtWidgets.QAction("&Copy", self, shortcut=QtGui.QKeySequence("Ctrl+C"),
                                          triggered=self.Editor.editCopy)
-        self.editPasteAct = QtGui.QAction("&Paste", self, shortcut=QtGui.QKeySequence("Ctrl+V"),
+        self.editPasteAct = QtWidgets.QAction("&Paste", self, shortcut=QtGui.QKeySequence("Ctrl+V"),
                                          triggered=self.Editor.editPaste)
-        self.editSelectAllAct = QtGui.QAction("Select &All", self, shortcut=QtGui.QKeySequence("Ctrl+A"),
+        self.editSelectAllAct = QtWidgets.QAction("Select &All", self, shortcut=QtGui.QKeySequence("Ctrl+A"),
                                          triggered=self.Editor.editSelectAll)
-        self.editClearAct = QtGui.QAction("Clear", self,  triggered=self.Editor.editClear)
+        self.editClearAct = QtWidgets.QAction("Clear", self,  triggered=self.Editor.editClear)
         # find/replace
-        self.findAct = QtGui.QAction("&Find/Replace...", self,
+        self.findAct = QtWidgets.QAction("&Find/Replace...", self,
                 shortcut=QtGui.QKeySequence("Ctrl+F"),
                 statusTip="Find/Replace texts", triggered=self.Editor.showFindDialog)
 
         # project menu
-        self.compileAct = QtGui.QAction(QtGui.QIcon("./images/build.png"), "&Compile",
+        self.compileAct = QtWidgets.QAction(QtGui.QIcon("./images/build.png"), "&Compile",
                 self, shortcut=QtGui.QKeySequence("Ctrl+B"),
                 statusTip="Build the current project", triggered=self.startBuild)
-        self.stopAct = QtGui.QAction(QtGui.QIcon("./images/stop.png"), "S&top",
+        self.stopAct = QtWidgets.QAction(QtGui.QIcon("./images/stop.png"), "S&top",
                 self, statusTip="Cancel the build process", triggered=self.stopBuild)
-        self.programAct = QtGui.QAction(QtGui.QIcon("./images/load.png"), "&Load",
+        self.programAct = QtWidgets.QAction(QtGui.QIcon("./images/load.png"), "&Load",
                 self, shortcut=QtGui.QKeySequence("Ctrl+R"),
                 statusTip="Download program to the board using bootloader", triggered=self.programChip)
 
@@ -309,7 +309,7 @@ class AppMainWindow(QtGui.QMainWindow):
         if len(self.firmwareLibList):
             for i in range(len(self.firmwareLibList)):
                 self.firmwareLibActs.append(
-                        QtGui.QAction(self.firmwareLibList[i],  self,
+                        QtWidgets.QAction(self.firmwareLibList[i],  self,
                             statusTip="include " + self.firmwareLibList[i] + " library" ) )
 
         self.exampleProjects = getExampleProjects(self.firmwareLibList)
@@ -317,58 +317,58 @@ class AppMainWindow(QtGui.QMainWindow):
         self.openExampleActs = []
         for group in self.exampleProjects:
             folder, files = group[0], group[1]
-            self.exampleFolderMenus.append(QtGui.QMenu(str(folder), self))
+            self.exampleFolderMenus.append(QtWidgets.QMenu(str(folder), self))
             for fname in files:
                 baseName = os.path.basename(fname)
-                self.openExampleActs.append(QtGui.QAction(os.path.splitext(baseName)[0], self,
+                self.openExampleActs.append(QtWidgets.QAction(os.path.splitext(baseName)[0], self,
                                 statusTip = 'Open "' + str(fname).replace('\\', '/') + '"') )
 
         # serial monitor/terminal window
-        self.serialMonitorAct = QtGui.QAction(QtGui.QIcon("./images/serial.png"), "Serial &Monitor",
+        self.serialMonitorAct = QtWidgets.QAction(QtGui.QIcon("./images/serial.png"), "Serial &Monitor",
                 self, shortcut=QtGui.QKeySequence("Ctrl+Shift+M"),
                 statusTip="Launch Serial Monitor Dialog", triggered=self.openSerialPortMonitorDialog)
-        self.serialPortGroup = QtGui.QActionGroup(self)
+        self.serialPortGroup = QtWidgets.QActionGroup(self)
         self.serialPortList = scan_serialports()
         self.serialPortActs = []
         if len(self.serialPortList):
             for i in range(len(self.serialPortList)):
                 self.serialPortActs.append(
-                        QtGui.QAction(self.serialPortList[i],  self, checkable=True,
+                        QtWidgets.QAction(self.serialPortList[i],  self, checkable=True,
                             statusTip="select " + self.serialPortList[i] + " serial port",
                             triggered=self.selectSerialPort) )
                 self.serialPortGroup.addAction( self.serialPortActs[i] )
 
         # todo: board names??
-        #self.boardAnitoAct = QtGui.QAction("PhilRobokit &Anito",  self,
+        #self.boardAnitoAct = QtWidgets.QAction("PhilRobokit &Anito",  self,
         #        checkable=True, statusTip="Select PhilRobokit Anito board" )
-        self.boardEgizmoUC3L0128Act = QtGui.QAction("eGizmo UC3L0128",  self, checkable=True,
+        self.boardEgizmoUC3L0128Act = QtWidgets.QAction("eGizmo UC3L0128",  self, checkable=True,
                 statusTip="Select eGizmo AT32UC3L0128 MCU board", triggered=self.selectMcuPart)
-        self.boardEgizmoUCL0256Act = QtGui.QAction("eGizmo UC3L0256",  self, checkable=True,
+        self.boardEgizmoUCL0256Act = QtWidgets.QAction("eGizmo UC3L0256",  self, checkable=True,
                 statusTip="Select eGizmo AT32UC3L0256 MCU board", triggered=self.selectMcuPart)
-        self.boardEgizmoUC3C264Act = QtGui.QAction("eGizmo UC3C264C",  self, checkable=True,
+        self.boardEgizmoUC3C264Act = QtWidgets.QAction("eGizmo UC3C264C",  self, checkable=True,
                 statusTip="Select eGizmo AT32UC3C264 MCU board", triggered=self.selectMcuPart)
-        self.boardEgizmoUC3C2128Act = QtGui.QAction("eGizmo UC3C2128C",  self, checkable=True,
+        self.boardEgizmoUC3C2128Act = QtWidgets.QAction("eGizmo UC3C2128C",  self, checkable=True,
                 statusTip="Select eGizmo AT32UC3C2128 MCU board", triggered=self.selectMcuPart)
-        self.boardGroup = QtGui.QActionGroup(self)
+        self.boardGroup = QtWidgets.QActionGroup(self)
         #self.boardGroup.addAction(self.boardAnitoAct)
         self.boardGroup.addAction(self.boardEgizmoUC3L0128Act)
         self.boardGroup.addAction(self.boardEgizmoUCL0256Act)
         self.boardGroup.addAction(self.boardEgizmoUC3C264Act)
         self.boardGroup.addAction(self.boardEgizmoUC3C2128Act)
 
-        self.restoreDefaultsAct = QtGui.QAction("Restore Defaults",  self,
+        self.restoreDefaultsAct = QtWidgets.QAction("Restore Defaults",  self,
                 statusTip="Clear configuration files", triggered=self.Configs.setDefaults)
 
         # help menu
-        self.aboutAct = QtGui.QAction("&About", self, shortcut=QtGui.QKeySequence("F1"),
+        self.aboutAct = QtWidgets.QAction("&About", self, shortcut=QtGui.QKeySequence("F1"),
                 statusTip="About the IDE", triggered=self.about)
-        self.aboutCompilerAct = QtGui.QAction("About &Compiler", self,
+        self.aboutCompilerAct = QtWidgets.QAction("About &Compiler", self,
                 statusTip="About GNU tools for AVR32", triggered=self.aboutCompiler)
-        self.aboutQtAct = QtGui.QAction("About &Qt", self,
-                statusTip="Show the Qt library's About box", triggered=QtGui.qApp.aboutQt)
-        self.visitProjectprotoSiteAct = QtGui.QAction("Visit &ProjectProto", self,
+        self.aboutQtAct = QtWidgets.QAction("About &Qt", self,
+                statusTip="Show the Qt library's About box", triggered=QtWidgets.qApp.aboutQt)
+        self.visitProjectprotoSiteAct = QtWidgets.QAction("Visit &ProjectProto", self,
                 statusTip="Open ProjectProto blog site (yus' projects)", triggered=self.openProjectProtoSite)
-        self.visitPhilroboticsSiteAct = QtGui.QAction("Visit Phil&Robotics", self,
+        self.visitPhilroboticsSiteAct = QtWidgets.QAction("Visit Phil&Robotics", self,
                 statusTip="Open PhilRobotics website", triggered=self.openPhilRoboticsSite)
 
     def createMenus(self):
@@ -378,7 +378,7 @@ class AppMainWindow(QtGui.QMainWindow):
         self.fileMenu.addAction(self.openAct)
         self.fileMenu.addSeparator()
 
-        self.examplesMenu = QtGui.QMenu('Examples', self)
+        self.examplesMenu = QtWidgets.QMenu('Examples', self)
         fileCount = 0
         for dirCount in range( len(self.exampleFolderMenus) ):
             examples = self.exampleProjects[dirCount][1]
@@ -423,8 +423,7 @@ class AppMainWindow(QtGui.QMainWindow):
         if len(self.firmwareLibActs):
             for i in range(len(self.firmwareLibActs)):
                 self.firmwareLibMenu.addAction(self.firmwareLibActs[i])
-        self.connect(self.firmwareLibMenu,
-                     QtCore.SIGNAL("triggered (QAction *)"), self.importFirmwareLib)
+        self.firmwareLibMenu.triggered.connect(self.importFirmwareLib)
 
         ### Tools Menu ###
         self.toolsMenu = self.menuBar().addMenu("&Tools")
@@ -445,8 +444,8 @@ class AppMainWindow(QtGui.QMainWindow):
                 break
 
         self.serialPortMenu = self.toolsMenu.addMenu("&Serial Port")
-        self.serialPortGroup = QtGui.QActionGroup(self)
-        self.connect(self.serialPortMenu, QtCore.SIGNAL("aboutToShow ()"), self.updateSerialPortList )
+        self.serialPortGroup = QtWidgets.QActionGroup(self)
+        self.serialPortMenu.aboutToShow.connect( self.updateSerialPortList )
         self.updateSerialPortList()
         self.toolsMenu.addSeparator()
         self.toolsMenu.addAction(self.restoreDefaultsAct) # todo: create settings dialog
@@ -482,14 +481,14 @@ class AppMainWindow(QtGui.QMainWindow):
         self.statusBar().showMessage("Ready")
 
     def createLogWindow(self):
-        self.log = QtGui.QTextEdit(self)
+        self.log = QtWidgets.QTextEdit(self)
         self.log.setReadOnly(True)
         self.log.resize(self.width(), 100 )
         self.log.setText("Ready")
         palette = QtGui.QPalette(QtGui.QColor(0, 0, 0))
         palette.setColor(QtGui.QPalette.Active, QtGui.QPalette.Base, QtGui.QColor(25, 10, 0))
         self.log.setPalette(palette)
-        logWindow = QtGui.QDockWidget("Log", self)
+        logWindow = QtWidgets.QDockWidget("Log", self)
         logWindow.setObjectName("LogView")
         logWindow.setWidget(self.log)
         self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, logWindow)
@@ -510,13 +509,11 @@ class AppMainWindow(QtGui.QMainWindow):
                 self.killTimer(timerID)
                 self.pollCompilerTimerID = None
 
-        #return QtGui.QMainWindow.timerEvent(self, *args, **kwargs)
-
 
     def closeEvent(self, event):
         if not self.Editor.closeAllTabs(): # check for unsaved changes in the project(s)
             event.ignore()
             return
         self.Configs.saveIdeSettings(self.serialPortName, self.McuPartName)
-        return QtGui.QMainWindow.closeEvent(self, event)
+        return QtWidgets.QMainWindow.closeEvent(self, event)
 

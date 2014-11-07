@@ -25,7 +25,7 @@
 
 '''
 import os, glob, re
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
 
 # directory containing ini files
 CONFIG_DIR = 'configs/'
@@ -84,16 +84,20 @@ class IdeConfig:
     def restoreIdeSettings( self ):
         # reads settings from previous session
         self.ideCfg.beginGroup( "MainWindow" )
-        self.parent.restoreGeometry(self.ideCfg.value("geometry").toByteArray());
-        self.parent.restoreState(self.ideCfg.value("windowState").toByteArray());
+        wingeometry = self.ideCfg.value("geometry");
+        if wingeometry:
+            self.parent.restoreGeometry(wingeometry);
+        winstate = self.ideCfg.value("windowState")
+        if winstate:
+            self.parent.restoreState(winstate)
         self.ideCfg.endGroup()
 
         self.ideCfg.beginGroup( "SerialPort" )
-        self.serialPortName = self.ideCfg.value("Name", QtCore.QVariant('')).toString()
+        self.serialPortName = self.ideCfg.value("Name", QtCore.QVariant(''))
         self.ideCfg.endGroup()
 
         self.ideCfg.beginGroup( "MCUPart" )
-        self.McuPartName = self.ideCfg.value("Name", QtCore.QVariant(DEFAULT_MCUPART)).toString()
+        self.McuPartName = self.ideCfg.value("Name", QtCore.QVariant(DEFAULT_MCUPART))
         self.ideCfg.endGroup()
 
         #todo: other IDE settings
@@ -165,42 +169,33 @@ class CompilerConfig:
     def restoreCompilerSettings(self):
         self.compilerCfg.beginGroup("TOOLCHAIN")
         if os.sys.platform == 'win32':
-            self.CC = self.compilerCfg.value("COMPILER",
-                            QtCore.QVariant(DEFAULT_TCHAIN_WIN32)).toString()
+            self.CC = self.compilerCfg.value("COMPILER", QtCore.QVariant(DEFAULT_TCHAIN_WIN32))
         elif os.sys.platform == 'linux2':
-            self.CC = self.compilerCfg.value("COMPILER",
-                            QtCore.QVariant(DEFAULT_TCHAIN_LINUX)).toString()
+            self.CC = self.compilerCfg.value("COMPILER", QtCore.QVariant(DEFAULT_TCHAIN_LINUX))
         elif os.sys.platform == 'darwin':
-            self.CC = self.compilerCfg.value("COMPILER",
-                            QtCore.QVariant(DEFAULT_TCHAIN_OSX)).toString()
+            self.CC = self.compilerCfg.value("COMPILER", QtCore.QVariant(DEFAULT_TCHAIN_OSX))
         else:
             # todo: other host platform
             self.CC = ""
 
-        self.CFLAGS = self.compilerCfg.value("CFLAGS", QtCore.QVariant(DEFAULT_CFLAGS)).toString()
-        self.CXXFLAGS = self.compilerCfg.value("CXXFLAGS", QtCore.QVariant(DEFAULT_CXXFLAGS)).toString()
-        self.AFLAGS = self.compilerCfg.value("AFLAGS", QtCore.QVariant(DEFAULT_AFLAGS)).toString()
-        self.LFLAGS = self.compilerCfg.value("LFLAGS", QtCore.QVariant(DEFAULT_LFLAGS)).toString()
+        self.CFLAGS = self.compilerCfg.value("CFLAGS", QtCore.QVariant(DEFAULT_CFLAGS))
+        self.CXXFLAGS = self.compilerCfg.value("CXXFLAGS", QtCore.QVariant(DEFAULT_CXXFLAGS))
+        self.AFLAGS = self.compilerCfg.value("AFLAGS", QtCore.QVariant(DEFAULT_AFLAGS))
+        self.LFLAGS = self.compilerCfg.value("LFLAGS", QtCore.QVariant(DEFAULT_LFLAGS))
         self.compilerCfg.endGroup()
 
         self.compilerCfg.beginGroup("MAKEFILE")
         if os.sys.platform == 'win32':
-            self.MAKE = self.compilerCfg.value("MAKE",
-                            QtCore.QVariant(DEFAULT_MAKECMD_WIN32)).toString()
+            self.MAKE = self.compilerCfg.value("MAKE", QtCore.QVariant(DEFAULT_MAKECMD_WIN32))
             if str(self.MAKE)==DEFAULT_MAKECMD_WIN32:
                 os.putenv('CYGWIN', 'nodosfilewarning')
-            self.RM = self.compilerCfg.value("RM",
-                            QtCore.QVariant(DEFAULT_RMCMD_WIN32)).toString()
+            self.RM = self.compilerCfg.value("RM", QtCore.QVariant(DEFAULT_RMCMD_WIN32))
         elif os.sys.platform == 'linux2':
-            self.MAKE = self.compilerCfg.value("MAKE",
-                            QtCore.QVariant(DEFAULT_MAKECMD_LINUX)).toString()
-            self.RM = self.compilerCfg.value("RM",
-                            QtCore.QVariant(DEFAULT_RMCMD_LINUX)).toString()
+            self.MAKE = self.compilerCfg.value("MAKE", QtCore.QVariant(DEFAULT_MAKECMD_LINUX))
+            self.RM = self.compilerCfg.value("RM", QtCore.QVariant(DEFAULT_RMCMD_LINUX))
         elif os.sys.platform == 'darwin':
-            self.MAKE = self.compilerCfg.value("MAKE",
-                            QtCore.QVariant(DEFAULT_MAKECMD_OSX)).toString()
-            self.RM = self.compilerCfg.value("RM",
-                            QtCore.QVariant(DEFAULT_RMCMD_OSX)).toString()
+            self.MAKE = self.compilerCfg.value("MAKE", QtCore.QVariant(DEFAULT_MAKECMD_OSX))
+            self.RM = self.compilerCfg.value("RM", QtCore.QVariant(DEFAULT_RMCMD_OSX))
         else:
             # todo: other host platform
             self.MAKE = ""
@@ -259,7 +254,7 @@ class FirmwareConfig:
     def restoreFwSettings(self):
         self.FwCfg.beginGroup("VALUES")
 
-        self.defines = self.FwCfg.value("DEFINES", QtCore.QVariant(DEFAULT_COMPILER_DEFINES)).toString()
+        self.defines = self.FwCfg.value("DEFINES", QtCore.QVariant(DEFAULT_COMPILER_DEFINES))
 
         self.FwCfg.endGroup()
 

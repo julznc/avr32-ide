@@ -26,7 +26,7 @@
 '''
 
 import os, subprocess
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 from firmware import USER_CODE_EXT, parseUserCode, getLinkerScript, getMcuArchitecture, getCompilerDefines
 from configs import CompilerConfig
 
@@ -65,11 +65,11 @@ class GccCompilerThread(QtCore.QThread):
         self.serialPortName = None
         self.CompilerProcess = None # todo: use QtCore.QProcess class instead
 
-        self.LogList = QtCore.QStringList()
+        self.LogList = list()
 
     def run(self):
         if not self.TCHAIN:
-            print 'no supported compiler!'
+            print('no supported compiler!')
             return
 
         self.LogList.clear()
@@ -111,8 +111,8 @@ class GccCompilerThread(QtCore.QThread):
                 if not self.CompilerProcess:
                     break;
                 # read single lines
-                buff = self.CompilerProcess.stdout.readline()
-                if buff == '': # got nothing
+                buff = self.CompilerProcess.stdout.readline().strip().decode('utf-8')
+                if not len(buff): # got nothing
                     if self.CompilerProcess.poll() != None: # process exited
                         self.CompilerProcess = None
                         # print 'compiler process finished.'
@@ -132,8 +132,9 @@ class GccCompilerThread(QtCore.QThread):
                         error_count += 1
                     else:
                         self.LogList.append( "<font color=green>%s</font>" % msg )
+
         except:
-            print 'got errors in compiler thread!'
+            print('got errors in compiler thread!')
             self.LogList.append( "<font color=red>ERROR: build failed!</font>")
             self.LogList.append( "<font color=red>%s</font>" % self.TCHAIN)
             self.CompilerProcess = None
@@ -143,7 +144,7 @@ class GccCompilerThread(QtCore.QThread):
         else:
             self.LogList.append( "<font size=4 color=red>done with error(s) !</font>"  )
 
-        print 'compiler thread done.'
+        print('compiler thread done.')
 
     def getCompilerInfo(self):
         if self.isRunning():
@@ -155,10 +156,10 @@ class GccCompilerThread(QtCore.QThread):
             self.usleep(1000)
             if not self.isRunning():
                 break;
-        if not self.LogList.count():
+        if not len(self.LogList):
             return None
         else:
-            self.LogList.takeLast()
+            self.LogList.pop() # takeLast
             info = ''
             for msg in self.LogList:
                 info += msg
@@ -199,7 +200,7 @@ class GccCompilerThread(QtCore.QThread):
         return True, "Flash Loader running. Please wait..."
 
     def pollBuildProcess(self, stopProcess=False):
-        if self.isRunning() or self.LogList.count()>0:
+        if self.isRunning() or len(self.LogList):
             if stopProcess:
                 self.LogList.clear()
                 try:
@@ -208,13 +209,13 @@ class GccCompilerThread(QtCore.QThread):
                     self.exit()
                     return True, "killed"
                 except:
-                    print "n0 u can't kill me! :-p"
+                    #print("n0 u can't kill me! :-p")
                     self.CompilerProcess.wait() # just wait for the process to finish
                     self.CompilerProcess = None
                     self.exit()
                     return False, "waited"
-            if self.LogList.count():
-                return True, str(self.LogList.takeFirst())
+            if len(self.LogList):
+                return True, str(self.LogList.pop(0)) # takeFirst
             else:
                 return True, ''
         else:

@@ -25,10 +25,10 @@
 
 '''
 
-import os, glob, shutil, urllib2
+import os, glob, shutil, urllib.request
 import clang.cindex as clang
 from configs import FirmwareConfig
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 # Core firmware Library
 CORE_LIB_DIR = 'hardware/cores'
@@ -61,20 +61,19 @@ def scanFirmwareLibs():
 def getExampleProjects(libFolders=[]):
     sampleProjects = {} # use dictionary
     # get example projects that use core libraries
-    sampleFolders = os.walk(EXAMPLES_DIR).next()[1] # get intermediate subfolders
-    for lib in sampleFolders:
-        if lib[0] != '.': # skip hidden folders
+    for lib in os.listdir(EXAMPLES_DIR): # get intermediate subfolders
+        if lib[0] != '.' and os.path.isdir(os.path.join(EXAMPLES_DIR,lib)): # skip hidden folders
             projects = glob.glob(EXAMPLES_DIR + '/' + lib + '/*' + USER_CODE_EXT )
             if len(projects):
                 group = str(lib).upper()
-                if not sampleProjects.has_key(group): # avoid duplicates
+                if group not in sampleProjects: # avoid duplicates
                     sampleProjects[group] = projects # store in the dictionary
     # get example projects that use optional user libraries
     for lib in libFolders:
         projects = glob.glob(USER_LIB_DIR + '/' + lib + '/examples/*' + USER_CODE_EXT )
         if len(projects):
             group = str(lib).upper()
-            if not sampleProjects.has_key(group):
+            if group not in sampleProjects:
                 sampleProjects[group] = projects
     #print sampleProjects
     return sorted(sampleProjects.items(), key=lambda x: x[1]) # sort according to keys (folder name)
@@ -103,7 +102,7 @@ def getCoreSourceFiles(userIncludes = [], mcuPart="uc3l0128"):
                     temp = line.strip()[len('#includes')-1 : ].strip()
                     header = temp[1:-1].strip() # get the header file
                     src = os.path.join(DRV_DIR, header[:-2], header[:-2]) + '.c' # e.g. drivers/adcifb/adcifb.c
-                    print src
+                    print(src)
                     if os.path.isfile(src) and not (src in required):
                         required.append( src )
             fin.close()
@@ -261,14 +260,14 @@ class FirmwareLibUpdate(QtCore.QThread):
         QtCore.QThread.__init__(self, parent)
         self.parent = parent
 
-        self.LogList = QtCore.QStringList()
+        self.LogList = list()
 
     def setDesiredRevision(self, rev):
         self.revision = rev
 
     def getLog(self):
-        if self.LogList.count()>0:
-            return str(self.LogList.takeFirst())
+        if len(self.LogList):
+            return self.LogList.pop(0) # takeFirst
         return None
 
     def run(self):
@@ -338,10 +337,10 @@ class FirmwareLibUpdate(QtCore.QThread):
     def latest_fwlib_svnrev(self):
         del self.revisionList[:]
         try:
-            ver_lines = urllib2.urlopen(self.version_url).readlines()
+            ver_lines = urllib.request.urlopen(self.version_url).readlines()
             latest = -1
             for line in ver_lines:
-                txt = line.strip()
+                txt = line.decode('utf-8').strip()
                 if not txt:
                     continue
                 if latest < 0:
@@ -366,7 +365,8 @@ class FirmwareLibUpdate(QtCore.QThread):
 
     def _browse(self, url):
         try:
-            for line in urllib2.urlopen(url).readlines():
+            for line in urllib.request.urlopen(url).readlines():
+                line = line.decode('utf-8')
                 href_pos = line.find(self.href_str)
                 if href_pos>=0:
                     fname = line[href_pos+len(self.href_str):line.find('">')]
@@ -375,9 +375,11 @@ class FirmwareLibUpdate(QtCore.QThread):
                     if fname.find('/')>0: # folder
                         self._browse(url+fname) # recursive
                     else:
+                        #print("add to list:", url + fname)
                         self.file_list.append( url + fname )
+                        self.LogList.append('found: %s'%fname)
         except:
-            print 'unable to open: ', url
+            print('unable to open: ', url)
 
     def browse_corelib(self, rev=100):
         if rev > len(self.revisionList):
@@ -385,6 +387,7 @@ class FirmwareLibUpdate(QtCore.QThread):
         url = self.history_url + '%s'%self.revisionList[rev] + self.corelib
         del self.file_list[:]
         self._browse(url)
+        #print("self.file_list = ", self.file_list)
         return self.file_list
 
     def browse_userlib(self, rev=100):
@@ -414,15 +417,14 @@ class FirmwareLibUpdate(QtCore.QThread):
                     try:
                         os.makedirs(dst_folder)
                     except:
-                        print 'unable to create folder: ', dst_folder
+                        print('unable to create folder: ', dst_folder)
                 try:
-                    fout = open(dst, 'wb')
-                    fout.write( urllib2.urlopen(fname).read() )
-                    fout.close()
+                    with urllib.request.urlopen(fname) as response, open(dst, 'wb') as out_file:
+                        shutil.copyfileobj(response, out_file)
                     updated += 1
                     self.LogList.append('updated (v%d): %s' %(self.revision, os.path.basename(dst)))
                 except:
-                    print 'unable to save: ', dst
+                    print('unable to save: ', dst)
         return updated, len(self.file_list)
 
     def download_corelib(self, folder='hardware/cores'):

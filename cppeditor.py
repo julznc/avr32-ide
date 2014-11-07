@@ -26,8 +26,8 @@
 '''
 
 import os
-from PyQt4 import QtGui, QtCore
-from PyQt4.Qsci import QsciScintilla, QsciLexerCPP, QsciAPIs
+from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.Qsci import QsciScintilla, QsciLexerCPP, QsciAPIs
 from firmware import getLibraryKeywords, REQUIRED_INCLUDE, USER_CODE_EXT
 
 # user source code
@@ -75,7 +75,7 @@ class CppEditor(QsciScintilla):
         self.lexer.setDefaultFont(font)
         self.libraryAPIs = QsciAPIs(QsciLexerCPP(self,True))
         self.setLexer(self.lexer)
-        self.SendScintilla(QsciScintilla.SCI_STYLESETFONT, 1, 'Courier')
+        #self.SendScintilla(QsciScintilla.SCI_STYLESETFONT, 1, 'Courier')
 
         # Auto-indent
         self.setTabWidth(4)
@@ -110,9 +110,8 @@ class CppEditor(QsciScintilla):
         self.setAutoCompletionReplaceWord(True)
 
         # "CTRL+Space" autocomplete
-        self.shortcut_ctrl_space = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Space"), self)
-        self.connect(self.shortcut_ctrl_space,
-            QtCore.SIGNAL('activated()'), self.autoCompleteFromAll)
+        self.shortcut_ctrl_space = QtWidgets.QShortcut(QtGui.QKeySequence("Ctrl+Space"), self)
+        self.shortcut_ctrl_space.activated.connect(self.autoCompleteFromAll)
 
         if fileName:
             self.curFile = fileName
@@ -125,63 +124,46 @@ class CppEditor(QsciScintilla):
 
         self.updateApiKeywords()
         self.isModified = False
-        self.connect(self, QtCore.SIGNAL('textChanged()'), self.onTextChanged )
+        self.textChanged.connect(self.onTextChanged )
 
     def onTextChanged(self):
         self.isModified = True
         self.parent.onChildContentChanged()
 
     def loadFile(self, fileName):
-        qfile = QtCore.QFile(fileName)
-        if not qfile.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text):
-            QtGui.QMessageBox.warning(self, PROJECT_ALIAS,
-                    "Cannot read file %s:\n%s." % (fileName, qfile.errorString()))
+        try:
+            self.clear()
+            with open(fileName, 'r') as f:
+                for line in f.readlines():
+                    self.append(line)
+            return True
+        except:
+            QtWidgets.QMessageBox.warning(self, PROJECT_ALIAS,
+                    "failed to read %s." % fileName )
             return False
 
-        ret = True
-        try:
-            # workaround for OS X QFile.readAll()
-            f = open(qfile.fileName(), 'r')
-            self.clear()
-            for line in f.readlines():
-                self.append(line)
-        except:
-            QtGui.QMessageBox.warning(self, PROJECT_ALIAS,
-                    "failed to read %s." % fileName )
-            ret = False
-        finally:
-            f.close()
-
-        qfile.close()
-        return ret
 
     def saveFile(self, fileName):
-        if str(fileName).find(' ')>=0:
-            QtGui.QMessageBox.warning(self, PROJECT_ALIAS,
+        if fileName.find(' ')>=0:
+            QtWidgets.QMessageBox.warning(self, PROJECT_ALIAS,
                     'File path "%s" contains space(s). Please save to a valid location.'%fileName)
-            return None
-        qfile = QtCore.QFile(fileName)
-        if not qfile.open(QtCore.QFile.WriteOnly | QtCore.QFile.Text):
-            QtGui.QMessageBox.warning(self, PROJECT_ALIAS,
-                    "Cannot write file %s:\n%s." % (fileName, qfile.errorString()))
             return None
 
         try:
-            qfile.writeData(self.text())
+            with open(fileName, 'wt') as f:
+                f.write(self.text())
         except:
-            QtGui.QMessageBox.warning(self, PROJECT_ALIAS,
+            QtWidgets.QMessageBox.warning(self, PROJECT_ALIAS,
                     "Failed to save %s." % fileName )
-            qfile.close()
             return None
 
-        qfile.close()
         self.curFile = fileName
         self.isUntitled = False
         self.isModified = False
         return fileName
 
     def saveAs(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self, "Save As",
+        fileName, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save As",
                 self.curFile, PROJECT_ALIAS + " (*" + USER_CODE_EXT + ");;" +
                     "C source (*.c);;C++ source (*.cpp);;Text File (*.txt);;All files (*.*)" )
         if not fileName:
@@ -192,7 +174,7 @@ class CppEditor(QsciScintilla):
         f1 = os.path.abspath(self.curFile)
         for fname in self.roFiles:
             if f1 == os.path.abspath(fname): # same file
-                if QtGui.QMessageBox.question(self.parent, "Project is read-only",
+                if QtWidgets.QMessageBox.question(self.parent, "Project is read-only",
                         "This project is marked as \"read-only\".\n" + \
                         "Please click \"Cancel\" and save this to another location.\n\n" + \
                         "Continue saving the current project anyway?", "OK", "Cancel"):

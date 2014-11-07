@@ -25,7 +25,7 @@
 
 '''
 
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtGui, QtCore, QtWidgets
 from firmware import FirmwareLibUpdate
 
 SPLASH_IMAGE = 'images/about.png'
@@ -40,10 +40,10 @@ SPLASH_NOTICE = '''
 
 '''
 
-class AboutDialog(QtGui.QSplashScreen):
+class AboutDialog(QtWidgets.QSplashScreen):
     ide_revision = "(unknown)"
     def __init__(self, parent=None):
-        QtGui.QSplashScreen.__init__(self, parent, flags=QtCore.Qt.WindowStaysOnTopHint)
+        QtWidgets.QSplashScreen.__init__(self, parent, flags=QtCore.Qt.WindowStaysOnTopHint)
 
         self.pix = QtGui.QPixmap( SPLASH_IMAGE )
         self.setPixmap(self.pix)
@@ -53,7 +53,7 @@ class AboutDialog(QtGui.QSplashScreen):
             QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom, QtGui.QColor("#eecc77"))
 
         self.fw_update = FirmwareLibUpdate(self)
-        self.input_dlg = QtGui.QInputDialog(self)
+        self.input_dlg = QtWidgets.QInputDialog(self)
         self.fw_update_timer_id = None
 
     def getVersions(self):
@@ -64,14 +64,13 @@ class AboutDialog(QtGui.QSplashScreen):
         # print 'you pressed me!'
         if not self.fw_update.isRunning():
             self.close()
-            return QtGui.QSplashScreen.mousePressEvent(self, *args, **kwargs)
 
     def setMsg(self, msg):
         self.showMessage( '[developer mode] '+ msg, QtCore.Qt.AlignLeft | QtCore.Qt.AlignBottom, QtGui.QColor("#eecc77"))
 
 
     def showUpdateDialog(self):
-        rev, res = self.input_dlg.getInteger(self, 'Update FW Lib', 'Input version ("0" = get latest)', 0, 0, 10000)
+        rev, res = self.input_dlg.getInt(self, 'Update FW Lib', 'Input version ("0" = get latest)', 0, 0, 10000)
         if res:
             self.fw_update.setDesiredRevision(rev)
             self.fw_update.start()
@@ -85,6 +84,5 @@ class AboutDialog(QtGui.QSplashScreen):
                 self.setMsg(msg)
             elif not self.fw_update.isRunning():
                 self.killTimer(self.fw_update_timer_id)
-        #return QtGui.QSplashScreen.timerEvent(self, *args, **kwargs)
 
 
