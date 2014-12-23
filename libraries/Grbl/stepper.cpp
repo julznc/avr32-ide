@@ -105,15 +105,8 @@ void Grbl::Stepper::wake_up()
     st.step_outbits = step_port_invert_mask;
 
     // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
-    #ifdef STEP_PULSE_DELAY
-      // Set total step pulse time after direction pin set. Ad hoc computation from oscilloscope.
-      st.step_pulse_time = -(((parent->m_settings.settings.pulse_microseconds+STEP_PULSE_DELAY-2)*TICKS_PER_MICROSECOND) >> 3);
-      // Set delay between direction pin write and step command.
-      OCR0A = -(((parent->m_settings.settings.pulse_microseconds)*TICKS_PER_MICROSECOND) >> 3);
-    #else // Normal operation
-      // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
-      st.step_pulse_time = -(((parent->m_settings.settings.pulse_microseconds-2)*TICKS_PER_MICROSECOND) >> 3);
-    #endif
+    // Set step pulse time. Ad hoc computation from oscilloscope. Uses two's complement.
+    st.step_pulse_time = -(((parent->m_settings.settings.pulse_microseconds-2)*TICKS_PER_MICROSECOND) >> 3);
 
     // Enable Stepper Driver Interrupt
     // avr32 to do: enable interrupt
@@ -187,9 +180,6 @@ void Grbl::Stepper::init()
   
   // Configure Timer 0: Stepper Port Reset Interrupt
   // avr32 to do:
-  #ifdef STEP_PULSE_DELAY
-    // avr32 to do: // Enable Timer0 Compare Match A interrupt
-  #endif
 }
 
 
