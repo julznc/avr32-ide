@@ -132,7 +132,7 @@ void StepperMotor::step(int forward) {
 void Grbl::Stepper::wake_up()
 {
   // Enable stepper drivers.
-  // avr32 to do: enable drivers
+  // avr32: enable-pins pulled up to VCCs
 
   if (parent->m_system.sys.state & (STATE_CYCLE | STATE_HOMING)){
     // Initialize stepper output bits
@@ -163,7 +163,8 @@ void Grbl::Stepper::go_idle()
     delay_ms(parent->m_settings.settings.stepper_idle_lock_time);
     pin_state = true; // Override. Disable steppers.
   }
-  // avr32 to do: disable stepper drivers
+  stmX.idle();
+  stmY.idle();
 }
 
 
@@ -200,7 +201,8 @@ void Grbl::Stepper::reset()
   generate_step_dir_invert_masks();
 
   // Initialize step and direction port pins.
-  // avr32 to do: step and direction port pins.
+  stmX.reset();
+  stmY.reset();
 }
 
 
@@ -208,7 +210,8 @@ void Grbl::Stepper::reset()
 void Grbl::Stepper::init()
 {
   // Configure step and direction interface pins
-  // avr32 to do: step and direction interface pins
+  stmX.init(PB12, PB11, PB10, PB09);
+  stmY.init(PB08, PB07, PB05, PB06);
 
   // Configure Timer 1: Stepper Driver Interrupt
   // avr32 to do:

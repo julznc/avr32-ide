@@ -100,6 +100,7 @@ typedef struct {
   float decelerate_after; // Deceleration ramp start measured from end of block (mm)
 } st_prep_t;
 
+/* 4-wire stepper motor */
 class StepperMotor
 {
   volatile uint32_t _p1, _p2, _p3, _p4;
@@ -107,8 +108,9 @@ class StepperMotor
 public:
   StepperMotor() : _p1(0), _p2(0), _p3(0), _p4(0), _pos(0) { }
   void init(uint32_t pin1, uint32_t pin2, uint32_t pin3, uint32_t pin4);
-  void idle();
   void step(int forward=1);
+  void reset() { _pos=0; idle(); }
+  void idle();
 };
 
 #endif

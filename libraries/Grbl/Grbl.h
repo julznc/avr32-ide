@@ -171,6 +171,10 @@ public:
 		st_block_t *st_prep_block;  // Pointer to the stepper block data being prepped
 
 		st_prep_t prep;
+		
+		StepperMotor stmX;
+		StepperMotor stmY;
+		//StepperMotor stmZ;
 	};
 
 	class System : public GrblChild
