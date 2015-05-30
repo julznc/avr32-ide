@@ -1,6 +1,6 @@
 #include <avr32.h>
 
-int led = PA13;
+int led = PA00;
 
 int main(void)
 {
