@@ -54,8 +54,8 @@ DEFAULT_RMCMD_OSX   = 'rm -rf'
 # compiler defines (used also for header parser)
 DEFAULT_COMPILER_DEFINES = 'USE_ASF:1;BOARD:USER_BOARD'
 
-DEFAULT_MCUARCH = 'ucr3'
-DEFAULT_MCUPART = 'uc3l0128'
+DEFAULT_MCUARCH = 'ucr3fp'
+DEFAULT_MCUPART = 'uc3c264c'
 
 # default flags
 COMMON_FLAGS     = '-march=$(MCUARCH) -mpart=$(MCUPART)'
